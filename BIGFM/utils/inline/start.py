@@ -59,7 +59,7 @@ def private_panel(_):
             InlineKeyboardButton(text="ɴᴇᴡs 📰 ↗️", url=config.SUPPORT_CHANNEL),
         ],
         [
-            InlineKeyboardButton(text="📜 ᴘʀɪᴠᴀᴄʏ", url="https://telegra.ph/Privacy-Policy"),
+            InlineKeyboardButton(text="📜 ᴘʀɪᴠᴀᴄʏ", url="https://telegra.ph/s%CA%9C%CA%8F%E1%B4%A7%E1%B4%8D-%E1%B4%A0%C9%AA%CA%99ye%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4-01-06"),
             InlineKeyboardButton(text="ᴀʙᴏᴜᴛ ℹ️", callback_data="about_callback"),
         ],
         [
