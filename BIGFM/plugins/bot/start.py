@@ -1,8 +1,7 @@
 import time
-
 from pyrogram import filters
 from pyrogram.enums import ChatType
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, CallbackQuery
 from youtubesearchpython.__future__ import VideosSearch
 
 import config
@@ -24,6 +23,53 @@ from BIGFM.utils.inline import help_pannel, private_panel, start_panel
 from config import BANNED_USERS
 from strings import get_string
 
+# --- [ FIX: ABOUT TEXT FUNCTION ] ---
+def get_about_text():
+    DEV_USERNAME = "KIRU_OP" # Apna Telegram Username yahan likhein
+    return f"""
+🎧 ** sʜʏᴧᴍ ᴠɪʙє [ 🇮🇳 | 🌸 ] ** ɪs ᴀ ᴘᴏᴡᴇʀғᴜʟ ᴀɴᴅ ʜɪɢʜ-ᴘᴇʀғᴏʀᴍᴀɴᴄᴇ ᴛᴇʟᴇɢʀᴀᴍ ᴍᴜsɪᴄ ʙᴏᴛ ᴅᴇsɪɢɴᴇᴅ ᴛᴏ ᴅᴇʟɪᴠᴇʀ ᴄʀʏsᴛᴀʟ-ᴄᴇᴀʀ ᴀᴜᴅɪᴏ sᴛʀᴇᴀᴍɪɴɢ ɪɴ ᴠᴏɪᴄᴇ ᴄʜᴀᴛs ᴡɪᴛʜ ᴇᴀsᴇ. ᴇɴᴊᴏʏ sᴍᴏᴏᴛʜ ᴘʟᴀʏʙᴀᴄᴋ, ᴀᴅᴠᴀɴᴄᴇᴅ ᴄᴏɴᴛʀᴏʟs ᴀɴᴅ ᴀ ᴘʀᴇᴍɪᴜᴍ ᴍᴜsɪᴄ ᴇxᴘᴇʀɪᴇɴᴄᴇ ✨
+
+❖ **ʙᴏᴛ ғᴜʟʟ ɪɴғᴏʀᴍᴀᴛɪᴏɴ :**
+├──🚀 **ᴠᴇʀsɪᴏɴ** : `𝟷.𝟶.𝟶`
+├──👨‍💻 **ᴅᴇᴠᴇʟᴏᴘᴇʀ** : @{DEV_USERNAME}
+├──📢 **ᴜᴘᴅᴀᴛᴇ's** : [ᴜᴘᴅᴀᴛᴇ ᴄʜᴀɴɴᴇʟ]({config.SUPPORT_CHANNEL})
+├──💾 **ᴅᴀᴛᴀʙᴀsᴇ** : `ᴍᴏɴɢᴏᴅʙ`
+├──🖥️ **sᴇʀᴠᴇʀ** : `ᴠɪʀᴛᴜᴀʟ ᴘʀɪᴠᴀᴛᴇ sᴇʀᴠᴇʀ`
+└──⚡ **ᴘᴏᴡᴇʀᴇᴅ ʙʏ** : `ʏᴏᴜᴛᴜʙᴇ ᴍᴜsɪᴄ`
+
+📝 **ʟᴀɴɢᴜᴀɢᴇ & ғʀᴀᴍᴇᴡᴏʀᴋ :**
+*ᴍᴏᴅᴇʀɴ ᴘʏᴛʜᴏɴ | ᴘʏ-ᴛɢᴄᴀʟʟs ᴠ𝟸.x | ᴘʏʀᴏɢʀᴀᴍ*
+
+🟢 **ᴏɴʟɪɴᴇ sɪɴᴄᴇ :** `𝟶𝟷/𝟶𝟷/𝟸𝟶𝟸𝟻`
+
+🔐 **ᴘʀɪᴠᴀᴄʏ ᴘᴏʟɪᴄʏ :**
+> ɪғ ʏᴏᴜ ᴜsᴇ **sσηᴧʟɪ ϻυsɪᴄ [ ησ ᴧᴅs ]** ғᴏʀ ᴀɴʏ ᴘᴜʀᴘᴏsᴇ, ʏᴏᴜ ᴀɢʀᴇᴇ ᴛᴏ ᴛʜᴇ ᴛᴇʀᴍs ᴀɴᴅ ᴄᴏɴᴅɪᴛɪᴏɴs ᴡʀɪᴛᴛᴇɴ ɪɴ `/ᴘʀɪᴠᴀᴄʏ`. ᴛʜᴇ ᴘʀɪᴠᴀᴄʏ ᴘᴏʟɪᴄʏ ᴍᴀʏ ʙᴇ ᴜᴘᴅᴀᴛᴇᴅ ᴏʀ ᴄʜᴀɴɢᴇᴅ ᴀᴛ ᴀɴʏ ᴛɪᴍᴇ ᴡɪᴛʜᴏᴜᴛ ᴘʀɪᴏʀ ɴᴏᴛɪᴄᴇ.
+"""
+
+# --- [ FIX: ABOUT CALLBACK HANDLER ] ---
+@app.on_callback_query(filters.regex("about_callback"))
+async def on_about_click(client, query: CallbackQuery):
+    await query.answer()
+    await query.edit_message_text(
+        text=get_about_text(),
+        disable_web_page_preview=True,
+        reply_markup=InlineKeyboardMarkup(
+            [[InlineKeyboardButton("◁ ʙᴀᴄᴋ", callback_data="settingsback_helper")]]
+        )
+    )
+
+# --- [ FIX: BACK BUTTON HANDLER ] ---
+@app.on_callback_query(filters.regex("settingsback_helper"))
+async def on_back_click(client, query: CallbackQuery):
+    await query.answer()
+    language = await get_lang(query.message.chat.id)
+    _ = get_string(language)
+    UP, CPU, RAM, DISK = await bot_sys_stats()
+    out = private_panel(_)
+    await query.edit_message_text(
+        text=_["start_2"].format(query.from_user.mention, app.mention, UP, DISK, CPU, RAM),
+        reply_markup=InlineKeyboardMarkup(out),
+    )
 
 @app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
 @LanguageStart
@@ -152,4 +198,4 @@ async def welcome(client, message: Message):
                 await add_served_chat(message.chat.id)
                 await message.stop_propagation()
         except Exception as ex:
-            print(ex)
+            print(ex) 
