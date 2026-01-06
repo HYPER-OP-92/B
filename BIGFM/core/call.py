@@ -35,7 +35,7 @@ from BIGFM.utils.exceptions import AssistantErr
 from BIGFM.utils.formatters import check_duration, seconds_to_min, speed_converter
 from BIGFM.utils.inline.play import stream_markup
 from BIGFM.utils.stream.autoclear import auto_clean
-from BIGFM.utils.thumbnails import gen_thumbstrings import get_string
+from BIGFM.utils.thumbnails import gen_thumb
 
 autoend = {}
 counter = {}
