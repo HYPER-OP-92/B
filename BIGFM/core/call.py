@@ -159,4 +159,25 @@ class Call(PyTgCalls):
         except:
             pass
 
-    asyn
+    async def ping(self):
+        pings = []
+        for obj in [self.one, self.two, self.three, self.four, self.five]:
+            try: pings.append(await obj.ping)
+            except: pass
+        return str(round(sum(pings) / len(pings), 3)) if pings else "0"
+
+    async def start(self):
+        for ass in [self.one, self.two, self.three, self.four, self.five]:
+            await ass.start()
+
+    async def decorators(self):
+        @self.one.on_stream_end()
+        @self.two.on_stream_end()
+        @self.three.on_stream_end()
+        @self.four.on_stream_end()
+        @self.five.on_stream_end()
+        async def handler(client, update: Update):
+            if isinstance(update, StreamAudioEnded):
+                await self.change_stream(client, update.chat_id)
+
+Aviax = Call()
