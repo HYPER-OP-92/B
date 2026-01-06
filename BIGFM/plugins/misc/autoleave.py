@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
 from pyrogram.enums import ChatType
-from pytgcalls.exceptions import GroupCallNotFound
+from pytgcalls.exceptions import NoActiveGroupCall as GroupCallNotFound
 import config
 from BIGFM import app
 from BIGFM.misc import db
