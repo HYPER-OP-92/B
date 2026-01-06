@@ -5,25 +5,20 @@ from typing import Union
 
 from pyrogram import Client
 from pyrogram.types import InlineKeyboardMarkup
-from pytgcalls import PyTgCalls
+from pytgcalls import PyTgCalls, StreamType
+#from pytgcalls import PyTgCalls
+#from pytgcalls.types import StreamType
 
-# --- New Imports for v2.2.0 ---
-from pytgcalls.types import (
-    AudioPiped,
-    AudioVideoPiped,
-    HighQualityAudio,
-    MediumQualityVideo,
-    Update,
-)
-from pytgcalls.types.stream import StreamAudioEnded
+
 from pytgcalls.exceptions import (
-    AlreadyJoined,
+    AlreadyJoinedError,
     NoActiveGroupCall,
     TelegramServerError,
 )
-
-# Purane code ke sath compatibility ke liye alias
-AlreadyJoinedError = AlreadyJoined
+from pytgcalls.types import Update
+from pytgcalls.types.input_stream import AudioPiped, AudioVideoPiped
+from pytgcalls.types.input_stream.quality import HighQualityAudio, MediumQualityVideo
+from pytgcalls.types.stream import StreamAudioEnded
 
 import config
 from BIGFM import LOGGER, YouTube, app
@@ -284,6 +279,7 @@ class Call(PyTgCalls):
         await assistant.join_group_call(
             config.LOG_GROUP_ID,
             AudioVideoPiped(link),
+            stream_type=StreamType().pulse_stream,
         )
         await asyncio.sleep(0.2)
         await assistant.leave_group_call(config.LOG_GROUP_ID)
@@ -306,11 +302,20 @@ class Call(PyTgCalls):
                 video_parameters=MediumQualityVideo(),
             )
         else:
-            stream = AudioPiped(link, audio_parameters=HighQualityAudio())
+            stream = (
+                AudioVideoPiped(
+                    link,
+                    audio_parameters=HighQualityAudio(),
+                    video_parameters=MediumQualityVideo(),
+                )
+                if video
+                else AudioPiped(link, audio_parameters=HighQualityAudio())
+            )
         try:
             await assistant.join_group_call(
                 chat_id,
                 stream,
+                stream_type=StreamType().pulse_stream,
             )
         except NoActiveGroupCall:
             raise AssistantErr(_["call_8"])
