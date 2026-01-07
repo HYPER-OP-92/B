@@ -32,3 +32,4 @@ youtube-search-python
 ytmusicapi
 aria2
 safoneAPI
+apscheduler
