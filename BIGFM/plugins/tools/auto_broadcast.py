@@ -74,7 +74,7 @@ async def auto_broadcast_bigfm(client: Client):
 
 # --- COMMANDS ---
 
-@Client.on_message(filters.command("start_ad") & filters.user([YOUR_ADMIN_ID]))
+@Client.on_message(filters.command("start_ad") & filters.user([8520496440]))
 async def start_auto_ad(client, message):
     if not scheduler.running:
         # Har 6 ghante (hours=6) ke liye set
@@ -84,7 +84,7 @@ async def start_auto_ad(client, message):
     else:
         await message.reply_text("⚠️ **Scheduler pehle se hi chal raha hai.**")
 
-@Client.on_message(filters.command("stop_ad") & filters.user([YOUR_ADMIN_ID]))
+@Client.on_message(filters.command("stop_ad") & filters.user([8520496440]))
 async def stop_auto_ad(client, message):
     if scheduler.running:
         scheduler.shutdown()
