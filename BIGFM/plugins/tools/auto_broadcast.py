@@ -7,8 +7,8 @@ from BIGFM.utils.database import get_served_chats, get_served_users
 
 # --- PREMIUM MESSAGE (Sonali Music) ---
 BROADCAST_TEXT = """
-<b>✨ 𝐒𝐎𝐍𝐀𝐋𝐈 𝐌𝐔𝐒𝐈𝐂 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 ✨</b>
-————— 「 @sonalixbot 」 —————
+<b>✨ sʜʏᴀᴍᴠɪʙᴇ ᴍᴜsɪᴄ ✨</b>
+————— 「 @SHYAMVIBEBOT 」 —————
 
 🚀 <b>24/7 Ultra-High Uptime</b>
 Hamesha active, har pal aapke liye taiyaar.
@@ -22,10 +22,10 @@ Pure & Ad-Free environment.
 💎 <b>Advanced Features</b>
 High-Fidelity (Hi-Fi) Streaming quality.
 
-🚀 <b>Add Sonali Music now and upgrade your group's vibe!</b>
+🚀 <b>Add sʜʏᴀᴍᴠɪʙᴇ ᴍᴜsɪᴄ now and upgrade your group's vibe!</b>
 
-<a href="https://t.me/sonalixbot">🔗 CLICK HERE TO START BOT</a>
-<a href="https://t.me/sonalixbot?startgroup=true">➕ ADD ME TO YOUR GROUP</a>
+<a href="https://t.me/SHYAMVIBEBOT">🔗 CLICK HERE TO START BOT</a>
+<a href="https://t.me/SHYAMVIBEBOT?startgroup=true">➕ ADD ME TO YOUR GROUP</a>
 """
 
 scheduler = AsyncioScheduler()
