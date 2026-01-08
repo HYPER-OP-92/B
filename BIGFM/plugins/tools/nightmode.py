@@ -16,58 +16,50 @@ import config
 
 # --- DATABASE LOGIC ---
 nightdb = mongodb.nightmode
+served_chats_db = mongodb.Yukki.served_chats 
 
-async def get_nightchats() -> list:
-    chats = nightdb.find({"chat_id": {"$lt": 0}})
-    chats_list = []
-    async for chat in chats:
-        chats_list.append(chat)
-    return chats_list
+async def is_global_nightmode_on() -> bool:
+    check = await nightdb.find_one({"chat_id": "GLOBAL"})
+    return bool(check)
 
-async def nightmode_on(chat_id: int):
-    return await nightdb.insert_one({"chat_id": chat_id})
+async def global_nightmode_on():
+    return await nightdb.update_one(
+        {"chat_id": "GLOBAL"}, {"$set": {"status": "ON"}}, upsert=True
+    )
 
-async def nightmode_off(chat_id: int):
-    return await nightdb.delete_one({"chat_id": chat_id})
+async def global_nightmode_off():
+    return await nightdb.delete_one({"chat_id": "GLOBAL"})
 
-# --- OWNER CHECK HELPER ---
+# --- OWNER CHECK ---
 def is_owner(user_id):
     owners = config.OWNER_ID
-    if isinstance(owners, int): # Agar single ID hai
+    if isinstance(owners, int):
         return user_id == owners
-    elif isinstance(owners, list): # Agar IDs ki list hai
+    elif isinstance(owners, list):
         return user_id in owners
     return False
 
 # --- PERMISSIONS ---
-CLOSE_CHAT = ChatPermissions(
-    can_send_messages=False,
-    can_send_media_messages=False,
-    can_send_other_messages=False,
-    can_send_polls=False,
-    can_change_info=False,
-    can_add_web_page_previews=False,
-    can_pin_messages=False,
-    can_invite_users=True,
-)
-
-OPEN_CHAT = ChatPermissions(
-    can_send_messages=True,
-    can_send_media_messages=True,
-    can_send_other_messages=True,
-    can_send_polls=True,
-    can_change_info=True,
-    can_add_web_page_previews=True,
-    can_pin_messages=True,
-    can_invite_users=True,
-)
+CLOSE_CHAT = ChatPermissions(can_send_messages=False)
+OPEN_CHAT = ChatPermissions(can_send_messages=True)
 
 # --- BUTTONS ---
 buttons = InlineKeyboardMarkup(
     [[
-        InlineKeyboardButton("๏ ᴇɴᴀʙʟᴇ ๏", callback_data="add_night"),
-        InlineKeyboardButton("๏ ᴅɪsᴀʙʟᴇ ๏", callback_data="rm_night"),
+        InlineKeyboardButton("๏ ᴇɴᴀʙʟᴇ ɢʟᴏʙᴀʟ ๏", callback_data="global_on"),
+        InlineKeyboardButton("๏ ᴅɪsᴀʙʟᴇ ɢʟᴏʙᴀʟ ๏", callback_data="global_off"),
     ]]
+)
+
+add_buttons = InlineKeyboardMarkup(
+    [
+        [
+            InlineKeyboardButton(
+                text="๏ ᴀᴅᴅ ᴍᴇ ɪɴ ɢʀᴏᴜᴘ ๏",
+                url=f"https://t.me/{app.username}?startgroup=true",
+            )
+        ]
+    ]
 )
 
 # --- COMMAND ---
@@ -76,60 +68,61 @@ async def _nightmode(_, message: Message):
     if not is_owner(message.from_user.id):
         return await message.reply_text("❌ **Sɪʀғ Mᴇʀᴇ Mᴀʟɪᴋ (Bᴏᴛ Oᴡɴᴇʀ) ʜɪ ɴɪɢʜᴛᴍᴏᴅᴇ ᴄᴏɴᴛʀᴏʟ ᴋᴀʀ sᴀᴋᴛᴇ ʜᴀɪɴ.**")
 
+    status = "Enabled ✅" if await is_global_nightmode_on() else "Disabled ❌"
     await message.reply_photo(
         photo="https://telegra.ph//file/06649d4d0bbf4285238ee.jpg",
-        caption="**ʜᴇʟʟᴏ Sɪʀ! Cʟɪᴄᴋ ᴛʜᴇ ʙᴜᴛᴛᴏɴ ʙᴇʟᴏᴡ ᴛᴏ ᴄᴏɴᴛʀᴏʟ ɴɪɢʜᴛᴍᴏᴅᴇ.**",
+        caption=f"**ɢʟᴏʙᴀʟ ɴɪɢʜᴛᴍᴏᴅᴇ Sᴇᴛᴛɪɴɢs**\n\n**Cᴜʀʀᴇɴᴛ Sᴛᴀᴛᴜs:** {status}\n\nAbhi Enable karne par bot saare groups ko raat 12 baje band kar dega.",
         reply_markup=buttons,
     )
 
 # --- CALLBACK ---
-@app.on_callback_query(filters.regex("^(add_night|rm_night)$"))
+@app.on_callback_query(filters.regex("^(global_on|global_off)$"))
 async def nightcb(_, query: CallbackQuery):
     if not is_owner(query.from_user.id):
-        return await query.answer("Ye power sirf Bot Owner ke paas hai!", show_alert=True)
+        return await query.answer("Sirf Bot Owner ke liye hai!", show_alert=True)
 
-    chat_id = query.message.chat.id
-    check_night = await nightdb.find_one({"chat_id": chat_id})
-
-    if query.data == "add_night":
-        if check_night:
-            await query.message.edit_caption("**๏ ɴɪɢʜᴛᴍᴏᴅᴇ ɪs ᴀʟʀᴇᴀᴅʏ ᴇɴᴀʙʟᴇᴅ.**")
-        else:
-            await nightmode_on(chat_id)
-            await query.message.edit_caption("**๏ ɴɪɢʜᴛᴍᴏᴅᴇ ᴇɴᴀʙʟᴇᴅ! [12AM-6AM]**")
-
-    elif query.data == "rm_night":
-        if check_night:
-            await nightmode_off(chat_id)
-            await query.message.edit_caption("**๏ ɴɪɢʜᴛᴍᴏᴅᴇ ᴅɪsᴀʙʟᴇᴅ.**")
-        else:
-            await query.message.edit_caption("**๏ ɴɪɢʜᴛᴍᴏᴅᴇ ɪs ᴀʟʀᴇᴀᴅʏ ᴅɪsᴀʙʟᴇᴅ.**")
+    if query.data == "global_on":
+        await global_nightmode_on()
+        await query.message.edit_caption("**✅ Global Nightmode ON ho gaya hai! Ab saare groups 12AM ko band honge.**", reply_markup=buttons)
+    
+    elif query.data == "global_off":
+        await global_nightmode_off()
+        await query.message.edit_caption("**❌ Global Nightmode OFF ho gaya hai!**", reply_markup=buttons)
 
 # --- AUTO FUNCTIONS ---
 
 async def start_nightmode():
-    chats = await get_nightchats()
-    for chat in chats:
+    if not await is_global_nightmode_on():
+        return
+
+    chats = []
+    async for chat in served_chats_db.find({"chat_id": {"$lt": 0}}):
+        chats.append(int(chat["chat_id"]))
+
+    for chat_id in chats:
         try:
-            chat_id = int(chat["chat_id"])
             await app.send_photo(
                 chat_id,
                 photo="https://telegra.ph//file/06649d4d0bbf4285238ee.jpg",
-                caption="**ᴍᴀʏ ᴛʜᴇ ᴀɴɢᴇʟs ғʀᴏᴍ ʜᴇᴀᴠᴇɴ ʙʀɪɴɢ ᴛʜᴇ sᴡᴇᴇᴛᴇsᴛ ᴏғ ᴀʟʟ ᴅʀᴇᴀᴍs ғᴏʀ ʏᴏᴜ. ᴍᴀʏ ʏᴏᴜ ʜᴀᴠᴇ ʟᴏɴɢ ᴀɴᴅ ʙʟɪssғᴜʟ sʟᴇᴇᴘ ғᴜʟʟ ᴏғ ʜᴀᴘᴘʏ ᴅʀᴇᴀᴍs.\n\nɢʀᴏᴜᴘ ɪs ᴄʟᴏsɪɴɢ ɢᴏᴏᴅ ɴɪɢʜᴛ ᴇᴠᴇʀʏᴏɴᴇ !**"
+                caption="**ᴍᴀʏ ᴛʜᴇ ᴀɴɢᴇʟs ғʀᴏᴍ ʜᴇᴀᴠᴇɴ ʙʀɪɴɢ ᴛʜᴇ sᴡᴇᴇᴛᴇsᴛ ᴏғ ᴀʟʟ ᴅʀᴇᴀᴍs ғᴏʀ ʏᴏᴜ. ᴍᴀʏ ʏᴏᴜ ʜᴀᴠᴇ ʟᴏɴɢ ᴀɴᴅ ʙʟɪssғᴜʟ sʟᴇᴇᴘ ғᴜʟʟ ᴏғ ʜᴀᴘᴘʏ ᴅʀᴇᴀᴍs.\n\nɢʀᴏᴜᴘ ɪs ᴄʟᴏsɪɴɢ ɢᴏᴏᴅ ɴɪɢʜᴛ ᴇᴠᴇʀʏᴏɴᴇ !**",
+                reply_markup=add_buttons
             )
             await app.set_chat_permissions(chat_id, CLOSE_CHAT)
         except:
             continue
 
 async def close_nightmode():
-    chats = await get_nightchats()
-    for chat in chats:
+    chats = []
+    async for chat in served_chats_db.find({"chat_id": {"$lt": 0}}):
+        chats.append(int(chat["chat_id"]))
+
+    for chat_id in chats:
         try:
-            chat_id = int(chat["chat_id"])
             await app.send_photo(
                 chat_id,
                 photo="https://telegra.ph//file/14ec9c3ff42b59867040a.jpg",
-                caption="**ɢʀᴏᴜᴘ ɪs ᴏᴘᴇɴɪɴɢ ɢᴏᴏᴅ ᴍᴏʀɴɪɴɢ ᴇᴠᴇʀʏᴏɴᴇ !\n\nᴍᴀʏ ᴛʜɪs ᴅᴀʏ ᴄᴏᴍᴇ ᴡɪᴛʜ ᴀʟʟ ᴛʜᴇ ʟᴏᴠᴇ ʏᴏᴜʀ ʜᴇᴀʀᴛ ᴄᴀɴ ʜᴏʟᴅ ᴀɴᴅ ʙʀɪɴɢ ʏᴏᴜ ᴇᴠᴇʀʏ sᴜᴄᴄᴇss ʏᴏᴜ ᴅᴇsɪʀᴇ. Mᴀʏ ᴇᴀᴄʜ ᴏғ ʏᴏᴜʀ ғᴏᴏᴛsᴛᴇᴘs ʙʀɪɴɢ Jᴏʏ ᴛᴏ ᴛʜᴇ ᴇᴀʀᴛʜ ᴀɴᴅ ʏᴏᴜʀsᴇʟғ. ɪ ᴡɪsʜ ʏᴏᴜ ᴀ ᴍᴀɢɪᴄᴀʟ ᴅᴀʏ ᴀɴᴅ ᴀ ᴡᴏɴᴅᴇʀғᴜʟ ʟɪғᴇ ᴀʜᴇᴀᴅ.**"
+                caption="**ɢʀᴏᴜᴘ ɪs ᴏᴘᴇɴɪɴɢ ɢᴏᴏᴅ ᴍᴏʀɴɪɴɢ ᴇᴠᴇʀʏᴏɴᴇ !\n\nᴍᴀʏ ᴛʜɪs ᴅᴀʏ ᴄᴏᴍᴇ ᴡɪᴛʜ ᴀʟʟ ᴛʜᴇ ʟᴏᴠᴇ ʏᴏᴜʀ ʜᴇᴀʀᴛ ᴄᴀɴ ʜᴏʟᴅ ᴀɴᴅ ʙʀɪɴɢ ʏᴏᴜ ᴇᴠᴇʀʏ sᴜᴄᴄᴇss ʏᴏᴜ ᴅᴇsɪʀᴇ. Mᴀʏ ᴇᴀᴄʜ ᴏғ ʏᴏᴜʀ ғᴏᴏᴛsᴛᴇᴘs ʙʀɪɴɢ Jᴏʏ ᴛᴏ ᴛʜᴇ ᴇᴀʀᴛʜ ᴀɴᴅ ʏᴏᴜʀsᴇʟғ. ɪ ᴡɪsʜ ʏᴏᴜ ᴀ ᴍᴀɢɪᴄᴀʟ ᴅᴀʏ ᴀɴᴅ ᴀ ᴡᴏɴᴅᴇʀғᴜʟ ʟɪғᴇ ᴀʜᴇᴀᴅ.**",
+                reply_markup=add_buttons
             )
             await app.set_chat_permissions(chat_id, OPEN_CHAT)
         except:
@@ -137,6 +130,6 @@ async def close_nightmode():
 
 # --- SCHEDULER ---
 scheduler = AsyncIOScheduler(timezone="Asia/Kolkata")
-scheduler.add_job(start_nightmode, trigger="cron", hour=0, minute=0) # Raat 12 AM
-scheduler.add_job(close_nightmode, trigger="cron", hour=6, minute=0) # Subah 6 AM
+scheduler.add_job(start_nightmode, trigger="cron", hour=0, minute=0)
+scheduler.add_job(close_nightmode, trigger="cron", hour=6, minute=0)
 scheduler.start()
