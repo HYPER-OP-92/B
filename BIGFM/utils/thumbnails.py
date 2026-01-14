@@ -92,9 +92,9 @@ async def get_thumb(videoid):
         
         # Font Loading
         try:
-            font_title = ImageFont.truetype("AloneMusic/assets/font.ttf", 45)
-            font_details = ImageFont.truetype("AloneMusic/assets/font2.ttf", 30)
-            font_wm = ImageFont.truetype("AloneMusic/assets/font2.ttf", 25)
+            font_title = ImageFont.truetype("BIGFM/assets/font.ttf", 45)
+            font_details = ImageFont.truetype("BIGFM/assets/font2.ttf", 30)
+            font_wm = ImageFont.truetype("BIGFM/assets/font2.ttf", 25)
         except:
             font_title = ImageFont.load_default()
             font_details = ImageFont.load_default()
