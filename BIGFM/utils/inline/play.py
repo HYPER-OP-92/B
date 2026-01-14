@@ -2,7 +2,7 @@ import math
 from pyrogram.types import InlineKeyboardButton
 from BIGFM.utils.formatters import time_to_seconds
 
-# --- [ 1. PROGRESS BAR (Photo Style) ] ---
+# --- [ 1. PROGRESS BAR (♬ Style) ] ---
 def get_progress_bar(played_sec, total_sec):
     try:
         percentage = (played_sec / total_sec) * 100
@@ -36,7 +36,7 @@ def get_progress_bar(played_sec, total_sec):
     
     return bar
 
-# --- [ 2. STREAM MARKUP TIMER (With Cancel Button) ] ---
+# --- [ 2. STREAM MARKUP TIMER ] ---
 def stream_markup_timer(_, chat_id, played, dur):
     played_sec = time_to_seconds(played)
     duration_sec = time_to_seconds(dur)
@@ -44,27 +44,22 @@ def stream_markup_timer(_, chat_id, played, dur):
 
     return [
         [
-            # Row 1: Time and Progress Bar
             InlineKeyboardButton(
                 text=f"{played} |{progress_bar}| {dur}", 
                 callback_data="timer_noop"
             )
         ],
         [
-            # Row 2: Control Buttons
             InlineKeyboardButton(text="▷", callback_data=f"ADMIN Resume|{chat_id}"),
             InlineKeyboardButton(text="Ⅱ", callback_data=f"ADMIN Pause|{chat_id}"),
             InlineKeyboardButton(text="⏭", callback_data=f"ADMIN Skip|{chat_id}"),
             InlineKeyboardButton(text="↺", callback_data=f"ADMIN Replay|{chat_id}"),
             InlineKeyboardButton(text="▢", callback_data=f"ADMIN Stop|{chat_id}"),
         ],
-        [
-            # Row 3: Normal Cancel Button
-            InlineKeyboardButton(text="Cancel", callback_data=f"ADMIN Stop|{chat_id}")
-        ],
+        [InlineKeyboardButton(text="Cancel", callback_data=f"ADMIN Stop|{chat_id}")],
     ]
 
-# --- [ 3. SIMPLE MARKUP ] ---
+# --- [ 3. SIMPLE STREAM MARKUP ] ---
 def stream_markup(_, chat_id):
     return [
         [
@@ -94,4 +89,28 @@ def livestream_markup(_, videoid, user_id, mode, channel, fplay):
             InlineKeyboardButton(text="ʟɪᴠᴇ sᴛʀᴇᴀᴍ", callback_data=f"LiveStream {videoid}|{user_id}|{mode}|{channel}|{fplay}"),
         ],
         [InlineKeyboardButton(text="Cancel", callback_data=f"forceclose {videoid}|{user_id}")],
+    ]
+
+# --- [ 6. PLAYLIST MARKUP (Fixed missing function) ] ---
+def playlist_markup(_, videoid, user_id, ptype, channel, fplay):
+    return [
+        [
+            InlineKeyboardButton(text="ᴀᴜᴅɪᴏ", callback_data=f"AviaxPlaylists {videoid}|{user_id}|{ptype}|a|{channel}|{fplay}"),
+            InlineKeyboardButton(text="ᴠɪᴅᴇᴏ", callback_data=f"AviaxPlaylists {videoid}|{user_id}|{ptype}|v|{channel}|{fplay}"),
+        ],
+        [InlineKeyboardButton(text="Cancel", callback_data=f"forceclose {videoid}|{user_id}")],
+    ]
+
+# --- [ 7. SLIDER MARKUP ] ---
+def slider_markup(_, videoid, user_id, query, query_type, channel, fplay):
+    return [
+        [
+            InlineKeyboardButton(text="ᴀᴜᴅɪᴏ", callback_data=f"MusicStream {videoid}|{user_id}|a|{channel}|{fplay}"),
+            InlineKeyboardButton(text="ᴠɪᴅᴇᴏ", callback_data=f"MusicStream {videoid}|{user_id}|v|{channel}|{fplay}"),
+        ],
+        [
+            InlineKeyboardButton(text="◁", callback_data=f"slider B|{query_type}|{query}|{user_id}|{channel}|{fplay}"),
+            InlineKeyboardButton(text="Cancel", callback_data=f"forceclose {query}|{user_id}"),
+            InlineKeyboardButton(text="▷", callback_data=f"slider F|{query_type}|{query}|{user_id}|{channel}|{fplay}"),
+        ],
     ]
