@@ -9,7 +9,7 @@ from pyrogram.types import Message
 from googleapiclient.discovery import build 
 
 # --- CONFIGURATION ---
-API_KEY = "AIzaSyAfG6kmGSSS0p2NM5nrMoGlhxit1whQvPk" 
+API_KEY = "AIzaSyD2xyghITQnJfohRzCoRzhYUH_HYAYINGM" 
 
 # Global instance of YouTube API
 youtube = build("youtube", "v3", developerKey=API_KEY, static_discovery=False)
