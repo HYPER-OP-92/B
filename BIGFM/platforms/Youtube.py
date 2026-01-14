@@ -15,9 +15,8 @@ from BIGFM.utils.formatters import time_to_seconds
 # Yahan apni saari API Keys daalein. Aap jitni chahein utni add kar sakte hain.
 API_KEYS = [
     "AIzaSyAfG6kmGSSS0p2NM5nrMoGlhxit1whQvPk", # Pehli Key
-    "PASTE_YOUR_SECOND_KEY_HERE",            # Dusri Key
-    "PASTE_YOUR_THIRD_KEY_HERE",             # Teesri Key
-    "PASTE_YOUR_FOURTH_KEY_HERE"             # Chauthi Key
+    "AIzaSyCJhc8D6CB0Ir35aBPNq7IVxO_Hl-R1YT0",            # Dusri Key
+    "AIzaSyD2xyghITQnJfohRzCoRzhYUH_HYAYINGM"             # Teesri Key
 ]
 
 # Cookies handling for yt-dlp
