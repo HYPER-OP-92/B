@@ -1,104 +1,84 @@
 import re
 from os import getenv
-
 from dotenv import load_dotenv
 from pyrogram import filters
 
+# .env file load karne ke liye
 load_dotenv()
 
-# Get this value from my.telegram.org/apps
-API_ID = int(getenv("API_ID", ""))
-API_HASH = getenv("API_HASH", "")
-
-# Get your token from @BotFather on Telegram.
-BOT_TOKEN = getenv("BOT_TOKEN")
-
-# Get your mongo url from cloud.mongodb.com
+# -----------------------------------------------------------------
+# BASIC BOT CONFIG
+# -----------------------------------------------------------------
+API_ID = int(getenv("API_ID", "0")) 
+API_HASH = getenv("API_HASH", None)
+BOT_TOKEN = getenv("BOT_TOKEN", None)
 MONGO_DB_URI = getenv("MONGO_DB_URI", None)
 
 # -----------------------------------------------------------------
-# YOUTUBE API KEYS (MULTI-KEY SUPPORT)
-# यहाँ अपनी सभी Keys को कोमा (,) लगाकर डालें। 
-# उदाहरण: "key1, key2, key3"
+# PRIVACY & POLICY (Fixes AttributeError: PRIVACY_LINK)
 # -----------------------------------------------------------------
-API_KEY = getenv("API_KEY", "AIzaSyDYXTbXOP6X9vYm4BSrCiLoMl24lvt7XGs, AIzaSyAwBmV6pjZcd8gM8paeA5mi00eejGUXeBc",)
+PRIVACY_LINK = getenv("PRIVACY_LINK", "https://telegra.ph/Privacy-Policy-for-AvishaMusic-08-14")
+
 # -----------------------------------------------------------------
+# HEROKU CONFIG (Fixes AttributeError: HEROKU_API_KEY)
+# -----------------------------------------------------------------
+HEROKU_APP_NAME = getenv("HEROKU_APP_NAME", None)
+HEROKU_API_KEY = getenv("HEROKU_API_KEY", None)
 
-## Other vars
-DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 300))
+UPSTREAM_REPO = getenv("UPSTREAM_REPO", "https://github.com/VNI0X/VNI0XAPIBASE")
+UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "main")
+GIT_TOKEN = getenv("GIT_TOKEN", None)
 
-# Chat id of a group for logging bot's activities
-LOGGER_ID = int(getenv("LOGGER_ID", "-1001511253627"))
+# -----------------------------------------------------------------
+# YOUTUBE API KEYS
+# -----------------------------------------------------------------
+API_KEY = getenv("API_KEY", "AIzaSyDYXTbXOP6X9vYm4BSrCiLoMl24lvt7XGs, AIzaSyAwBmV6pjZcd8gM8paeA5mi00eejGUXeBc")
 
-# Get this value from @NIKKU_MUSIC on Telegram by /id
+# -----------------------------------------------------------------
+# LOGGER & OWNER CONFIG (Fixes Log Group Error)
+# -----------------------------------------------------------------
+LOGGER_ID = int(getenv("LOGGER_ID", "-1003034048678"))
+LOG_GROUP_ID = LOGGER_ID 
 OWNER_ID = int(getenv("OWNER_ID", "7967418569"))
 
-## Fill these variables if you're deploying on heroku.
-# Your heroku app name
-HEROKU_APP_NAME = getenv("HEROKU_APP_NAME")
-# Get it from http://dashboard.heroku.com/account
-HEROKU_API_KEY = getenv("HEROKU_API_KEY")
-
-UPSTREAM_REPO = getenv(
-    "UPSTREAM_REPO",
-    "https://github.com/VNI0X/VNI0XAPIBASE",
-)
-UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "main")
-GIT_TOKEN = getenv(
-    "GIT_TOKEN", None
-)  # Fill this variable if your upstream repository is private
-
+# -----------------------------------------------------------------
+# SUPPORT & LINKS (Fixes ImportError: SUPPORT_GROUP)
+# -----------------------------------------------------------------
 SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/about_deadly_venom")
 SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/NOBITA_SUPPORT")
+SUPPORT_GROUP = SUPPORT_CHAT 
 
-# Set this to True if you want the assistant to automatically leave chats after an interval
-AUTO_LEAVING_ASSISTANT = bool(getenv("AUTO_LEAVING_ASSISTANT", True))
-ASSISTANT_LEAVE_TIME = int(getenv("ASSISTANT_LEAVE_TIME",  5400))
-
-
-# Get this credentials from https://developer.spotify.com/dashboard
-SPOTIFY_CLIENT_ID = getenv("SPOTIFY_CLIENT_ID", "1c21247d714244ddbb09925dac565aed")
-SPOTIFY_CLIENT_SECRET = getenv("SPOTIFY_CLIENT_SECRET", "709e1a2969664491b58200860623ef19")
-
-
-# Maximum limit for fetching playlist's track from youtube, spotify, apple links.
+# -----------------------------------------------------------------
+# LIMITS & DURATIONS
+# -----------------------------------------------------------------
+DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 300))
 PLAYLIST_FETCH_LIMIT = int(getenv("PLAYLIST_FETCH_LIMIT", 25))
-
-
-# Telegram audio and video file size limit (in bytes)
 TG_AUDIO_FILESIZE_LIMIT = int(getenv("TG_AUDIO_FILESIZE_LIMIT", 204857600))
 TG_VIDEO_FILESIZE_LIMIT = int(getenv("TG_VIDEO_FILESIZE_LIMIT", 2073741824))
 
-PRIVATE_BOT_MODE_MEM = int(getenv("PRIVATE_BOT_MODE_MEM", 1))
+AUTO_LEAVING_ASSISTANT = bool(getenv("AUTO_LEAVING_ASSISTANT", True))
+ASSISTANT_LEAVE_TIME = int(getenv("ASSISTANT_LEAVE_TIME", 5400))
 
+# -----------------------------------------------------------------
+# SPOTIFY
+# -----------------------------------------------------------------
+SPOTIFY_CLIENT_ID = getenv("SPOTIFY_CLIENT_ID", "1c21247d714244ddbb09925dac565aed")
+SPOTIFY_CLIENT_SECRET = getenv("SPOTIFY_CLIENT_SECRET", "709e1a2969664491b58200860623ef19")
 
-CACHE_DURATION = int(getenv("CACHE_DURATION" , "86400"))  #60*60*24
-CACHE_SLEEP = int(getenv("CACHE_SLEEP" , "3600"))   #60*60
-
-
-# Get your pyrogram v2 session from @StringFatherBot on Telegram
+# -----------------------------------------------------------------
+# SESSION STRINGS
+# -----------------------------------------------------------------
 STRING1 = getenv("STRING_SESSION", None)
 STRING2 = getenv("STRING_SESSION2", None)
 STRING3 = getenv("STRING_SESSION3", None)
 STRING4 = getenv("STRING_SESSION4", None)
 STRING5 = getenv("STRING_SESSION5", None)
 
-
-BANNED_USERS = filters.user()
-adminlist = {}
-lyrical = {}
-votemode = {}
-autoclean = []
-confirmer = {}
-file_cache: dict[str, float] = {}
-
-START_IMG_URL = ["https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg",
-                 "https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg",
-                 "https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg"]
-    
-PING_IMG_URL = getenv(
-    "PING_IMG_URL", "https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg"
-)
+# -----------------------------------------------------------------
+# IMAGES & UI
+# -----------------------------------------------------------------
+START_IMG_URL = getenv("START_IMG_URL", "https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg")
+PING_IMG_URL = getenv("PING_IMG_URL", "https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg")
 PLAYLIST_IMG_URL = "https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg"
 STATS_IMG_URL = "https://telegra.ph/file/edd388a42dd2c499fd868.jpg"
 TELEGRAM_AUDIO_URL = "https://telegra.ph/file/492a3bb2e880d19750b79.jpg"
@@ -110,24 +90,40 @@ SPOTIFY_ARTIST_IMG_URL = "https://graph.org/file/0bb6f36796d496b4254ff.jpg"
 SPOTIFY_ALBUM_IMG_URL = "https://graph.org/file/0bb6f36796d496b4254ff.jpg"
 SPOTIFY_PLAYLIST_IMG_URL = "https://graph.org/file/0bb6f36796d496b4254ff.jpg"
 
+# -----------------------------------------------------------------
+# REQUIRED LISTS & DICTS
+# -----------------------------------------------------------------
+BANNED_USERS = filters.user()
+adminlist = {}
+lyrical = {}
+votemode = {}
+autoclean = []
+confirmer = {}
+file_cache: dict[str, float] = {}
 
+PRIVATE_BOT_MODE_MEM = int(getenv("PRIVATE_BOT_MODE_MEM", 1))
+CACHE_DURATION = int(getenv("CACHE_DURATION", "86400"))
+CACHE_SLEEP = int(getenv("CACHE_SLEEP", "3600"))
 
+# -----------------------------------------------------------------
+# UTILS
+# -----------------------------------------------------------------
 def time_to_seconds(time):
     stringt = str(time)
-    return sum(int(x) * 60**i for i, x in enumerate(reversed(stringt.split(":"))))
+    try:
+        return sum(int(x) * 60**i for i, x in enumerate(reversed(stringt.split(":"))))
+    except:
+        return 0
 
+DURATION_LIMIT = int(time_to_seconds(f"{DURATION_LIMIT_MIN}:00"))
 
-DURATION_LIMIT = int(time_to_seconds(f"{DURATION_LIMIT_MIN}:360"))
-
-
+# -----------------------------------------------------------------
+# VALIDATION
+# -----------------------------------------------------------------
 if SUPPORT_CHANNEL:
     if not re.match("(?:http|https)://", SUPPORT_CHANNEL):
-        raise SystemExit(
-            "[ERROR] - Your SUPPORT_CHANNEL url is wrong. Please ensure that it starts with https://"
-        )
+        print("[ERROR] - Your SUPPORT_CHANNEL url is wrong.")
 
 if SUPPORT_CHAT:
     if not re.match("(?:http|https)://", SUPPORT_CHAT):
-        raise SystemExit(
-            "[ERROR] - Your SUPPORT_CHAT url is wrong. Please ensure that it starts with https://"
-)
+        print("[ERROR] - Your SUPPORT_CHAT url is wrong.")
