@@ -21,7 +21,7 @@ MONGO_DB_URI = getenv("MONGO_DB_URI", None)
 # यहाँ अपनी सभी Keys को कोमा (,) लगाकर डालें। 
 # उदाहरण: "key1, key2, key3"
 # -----------------------------------------------------------------
-API_KEY = getenv("API_KEY", "AIzaSyC_yPuJD0S75qMQFg-WobboAEPRjHXpl1M, AIzaSyB5ofI6tA5S-fX1cCKvXuompJKnJRiv1SE",)
+API_KEY = getenv("API_KEY", "AIzaSyDYXTbXOP6X9vYm4BSrCiLoMl24lvt7XGs, AIzaSyAwBmV6pjZcd8gM8paeA5mi00eejGUXeBc,)
 # -----------------------------------------------------------------
 
 ## Other vars
@@ -92,14 +92,14 @@ autoclean = []
 confirmer = {}
 file_cache: dict[str, float] = {}
 
-START_IMG_URL = ["https://graph.org/file/9e3513de206670417d884-6529b8b9f8f6748812.jpg",
-                 "https://graph.org/file/14a26fdf7d9f744269567-ccdde447d3682b8cd3.jpg",
-                 "https://graph.org/file/cecbf4414a6b4ff48b297-482a571d7d06c437a2.jpg"]
+START_IMG_URL = ["https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg",
+                 "https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg",
+                 "https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg"]
     
 PING_IMG_URL = getenv(
-    "PING_IMG_URL", "https://graph.org/file/062f851978de03808885f-eb92d34cde8511a7d6.jpg"
+    "PING_IMG_URL", "https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg"
 )
-PLAYLIST_IMG_URL = "https://graph.org/file/df60a4160209a6ca58eb2-6473d069fe73f4f397.jpg"
+PLAYLIST_IMG_URL = "https://graph.org/file/5e7e5d40bc2f6bb9868dd-e272c7f0ec8ff537bf.jpg"
 STATS_IMG_URL = "https://telegra.ph/file/edd388a42dd2c499fd868.jpg"
 TELEGRAM_AUDIO_URL = "https://telegra.ph/file/492a3bb2e880d19750b79.jpg"
 TELEGRAM_VIDEO_URL = "https://telegra.ph/file/492a3bb2e880d19750b79.jpg"
