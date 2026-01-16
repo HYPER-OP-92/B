@@ -32,7 +32,7 @@ GIT_TOKEN = getenv("GIT_TOKEN", None)
 # -----------------------------------------------------------------
 # YOUTUBE API KEYS
 # -----------------------------------------------------------------
-API_KEY = getenv("API_KEY", "AIzaSyDYXTbXOP6X9vYm4BSrCiLoMl24lvt7XGs, AIzaSyAwBmV6pjZcd8gM8paeA5mi00eejGUXeBc")
+API_KEY = getenv("API_KEY", "AIzaSyDyN6mPVdrm-EX_0ruJmpOrhTZJyZPibpU, AIzaSyDUAmelPtyeSuB-fS4mKPhbprVTHWCkQ20")
 
 # -----------------------------------------------------------------
 # LOGGER & OWNER CONFIG (Fixes Log Group Error)
