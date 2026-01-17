@@ -13,11 +13,29 @@ from googleapiclient.errors import HttpError
 try:
     from config import YOUTUBE_API_KEYS
 except ImportError:
-    # Agar config se nahi milta toh default list (security ke liye)
     YOUTUBE_API_KEYS = ["AIzaSyACgEYXqRtQZ8AG77T5xZgGtEP1bt8Mekk"]
 
+async def shell_cmd(cmd):
+    proc = await asyncio.create_subprocess_shell(
+        cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    out, errorz = await proc.communicate()
+    if errorz:
+        if "unavailable videos are hidden" in (errorz.decode("utf-8")).lower():
+            return out.decode("utf-8")
+        else:
+            return errorz.decode("utf-8")
+    return out.decode("utf-8")
+
+# Cookies handling
+cookies_file = "BIGFM/cookies.txt"
+if not os.path.exists(cookies_file):
+    cookies_file = None
+
 class YouTubeAPI:
-    # --- GLOBAL STATE (Bot restart hone tak yaad rahega) ---
+    # --- GLOBAL STATE ---
     current_key_index = 0
     youtube_client = None
 
@@ -26,35 +44,13 @@ class YouTubeAPI:
         self.regex = r"(?:youtube\.com|youtu\.be)"
         self.listbase = "https://youtube.com/playlist?list="
         
-        # Client initialize karein agar nahi hai toh
+        # Initialize client if not already done
         if YouTubeAPI.youtube_client is None:
             self._build_youtube_client()
 
-    def _build_youtube_client(self):
-        """Current active key se Google API client banata hai"""
-        if not YOUTUBE_API_KEYS:
-            return None
-        try:
-            YouTubeAPI.youtube_client = build(
-                "youtube", 
-                "v3", 
-                developerKey=YOUTUBE_API_KEYS[YouTubeAPI.current_key_index], 
-                static_discovery=False
-            )
-        except Exception:
-            YouTubeAPI.youtube_client = None
-
-    def _rotate_key(self):
-        """Quota khatm hone par agli key par permanent shift karein"""
-        if len(YOUTUBE_API_KEYS) > 1:
-            YouTubeAPI.current_key_index = (YouTubeAPI.current_key_index + 1) % len(YOUTUBE_API_KEYS)
-            self._build_youtube_client()
-            print(f"INFO: Quota Full. Switched to Key Index: {YouTubeAPI.current_key_index}")
-        else:
-            print("ERROR: No more API keys available for rotation.")
-
+    # --- YE FUNCTION MISSING THA (IMPORTANT) ---
     async def url(self, message_1: Message) -> Union[str, None]:
-        """Message se YouTube URL nikalne ke liye (Missing Function)"""
+        """Message se YouTube URL extract karne ke liye"""
         messages = [message_1]
         if message_1.reply_to_message:
             messages.append(message_1.reply_to_message)
@@ -71,8 +67,28 @@ class YouTubeAPI:
                         return entity.url
         return None
 
+    def _build_youtube_client(self):
+        """Current active key se Google API client banata hai"""
+        if not YOUTUBE_API_KEYS:
+            return None
+        try:
+            YouTubeAPI.youtube_client = build(
+                "youtube", 
+                "v3", 
+                developerKey=YOUTUBE_API_KEYS[YouTubeAPI.current_key_index], 
+                static_discovery=False
+            )
+        except Exception:
+            YouTubeAPI.youtube_client = None
+
+    def _rotate_key(self):
+        """Quota khatm hone par permanent switch karein"""
+        if len(YOUTUBE_API_KEYS) > 1:
+            YouTubeAPI.current_key_index = (YouTubeAPI.current_key_index + 1) % len(YOUTUBE_API_KEYS)
+            self._build_youtube_client()
+            print(f"INFO: API Switched to Key Index: {YouTubeAPI.current_key_index}")
+
     def parse_duration(self, duration):
-        """ISO 8601 duration ko MM:SS mein badalta hai"""
         match = re.search(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration)
         hours = int(match.group(1) or 0)
         minutes = int(match.group(2) or 0)
@@ -88,7 +104,6 @@ class YouTubeAPI:
             match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11})", link)
             vidid = match.group(1) if match else None
 
-        # Google API se koshish karein
         if YouTubeAPI.youtube_client:
             for _ in range(len(YOUTUBE_API_KEYS)):
                 try:
@@ -114,14 +129,14 @@ class YouTubeAPI:
                     return title, duration_min, duration_sec, thumbnail, vidid
 
                 except HttpError as e:
-                    if e.resp.status in [403, 429]: # Quota limit
+                    if e.resp.status in [403, 429]:
                         self._rotate_key()
                         continue
                     break
                 except Exception:
                     break
 
-        # Fallback: Agar API fail ho jaye toh yt-dlp use karein
+        # Fallback to yt-dlp
         try:
             loop = asyncio.get_running_loop()
             with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
