@@ -11,7 +11,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 import config 
-from VIPMUSIC.utils.formatters import time_to_seconds
+from BIGFM.utils.formatters import time_to_seconds
 
 # --- SMART API ROTATION LOGIC (ONLY API, NO COOKIES) ---
 API_KEYS = [k.strip() for k in config.API_KEY.split(",")]
