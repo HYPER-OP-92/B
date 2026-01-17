@@ -7,7 +7,7 @@ from googleapiclient.discovery import build
 import isodate # YouTube duration (PT1M2S) को कन्वर्ट करने के लिए
 
 # अपनी API Key यहाँ डालें
-YOUTUBE_API_KEY = "YOUR_GOOGLE_API_KEY_HERE"
+YOUTUBE_API_KEY = "AIzaSyCHRfOCjo77bI3HYRvwIjxIke2TuFT_vh8"
 
 # YouTube API Client Setup
 youtube_client = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
