@@ -7,7 +7,7 @@ from pyrogram.enums import MessageEntityType
 from googleapiclient.discovery import build
 
 # अपनी API Key यहाँ डालें
-YOUTUBE_API_KEY = "YOUR_GOOGLE_API_KEY_HERE"
+YOUTUBE_API_KEY = "AIzaSyBlbkp4_XbjOZAMG6mr_QMmurBW9tcpu0s"
 
 youtube_client = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
 
