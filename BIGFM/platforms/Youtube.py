@@ -9,14 +9,14 @@ from pyrogram.types import Message
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-# Config se API Keys ki list
+# Config se API Keys ki list mangwa rahe hain
 try:
     from config import YOUTUBE_API_KEYS
 except ImportError:
     YOUTUBE_API_KEYS = []
 
 class YouTubeAPI:
-    # --- GLOBAL STATE ---
+    # --- GLOBAL STATE (Bot restart hone tak yaad rahega) ---
     current_key_index = 0
     youtube_client = None
 
@@ -25,27 +25,12 @@ class YouTubeAPI:
         self.regex = r"(?:youtube\.com|youtu\.be)"
         self.listbase = "https://youtube.com/playlist?list="
         
+        # Client initialize karein agar pehli baar hai
         if YouTubeAPI.youtube_client is None:
             self._build_youtube_client()
 
-    async def url(self, message_1: Message) -> Union[str, None]:
-        messages = [message_1]
-        if message_1.reply_to_message:
-            messages.append(message_1.reply_to_message)
-        
-        for message in messages:
-            if message.entities:
-                for entity in message.entities:
-                    if entity.type == MessageEntityType.URL:
-                        text = message.text or message.caption
-                        return text[entity.offset : entity.offset + entity.length]
-            if message.caption_entities:
-                for entity in message.caption_entities:
-                    if entity.type == MessageEntityType.TEXT_LINK:
-                        return entity.url
-        return None
-
     def _build_youtube_client(self):
+        """Current active key se Google API client banata hai"""
         if not YOUTUBE_API_KEYS:
             return None
         try:
@@ -59,18 +44,47 @@ class YouTubeAPI:
             YouTubeAPI.youtube_client = None
 
     def _rotate_key(self):
+        """Quota khatm hone par permanent switch karein"""
         if len(YOUTUBE_API_KEYS) > 1:
             YouTubeAPI.current_key_index = (YouTubeAPI.current_key_index + 1) % len(YOUTUBE_API_KEYS)
             self._build_youtube_client()
+            print(f"INFO: Quota Full. Switched to Key Index: {YouTubeAPI.current_key_index}")
 
-    def parse_duration(self, duration):
-        match = re.search(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration)
+    def format_seconds(self, seconds):
+        """Seconds (int) ko MM:SS format mein badalta hai"""
+        if not seconds:
+            return "00:00"
+        seconds = int(seconds)
+        minutes, seconds = divmod(seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+        if hours > 0:
+            return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+        return f"{minutes:02d}:{seconds:02d}"
+
+    def parse_iso_duration(self, duration_iso):
+        """ISO 8601 (PT4M13S) ko format karta hai"""
+        match = re.search(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration_iso)
         hours = int(match.group(1) or 0)
         minutes = int(match.group(2) or 0)
         seconds = int(match.group(3) or 0)
-        total_seconds = hours * 3600 + minutes * 60 + seconds
-        duration_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}" if hours > 0 else f"{minutes:02d}:{seconds:02d}"
-        return duration_str, total_seconds
+        total_sec = hours * 3600 + minutes * 60 + seconds
+        return self.format_seconds(total_sec), total_sec
+
+    async def url(self, message: Message) -> Union[str, None]:
+        messages = [message]
+        if message.reply_to_message:
+            messages.append(message.reply_to_message)
+        for m in messages:
+            if m.entities:
+                for entity in m.entities:
+                    if entity.type == MessageEntityType.URL:
+                        text = m.text or m.caption
+                        return text[entity.offset : entity.offset + entity.length]
+            if m.caption_entities:
+                for entity in m.caption_entities:
+                    if entity.type == MessageEntityType.TEXT_LINK:
+                        return entity.url
+        return None
 
     async def details(self, link: str, videoid: Union[bool, str] = None):
         if videoid:
@@ -79,7 +93,7 @@ class YouTubeAPI:
             match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11})", link)
             vidid = match.group(1) if match else None
 
-        # --- GOOGLE API TRY ---
+        # --- 1. GOOGLE API ATTEMPT ---
         if YouTubeAPI.youtube_client:
             for _ in range(len(YOUTUBE_API_KEYS)):
                 try:
@@ -93,14 +107,15 @@ class YouTubeAPI:
                     video_res = await asyncio.to_thread(
                         YouTubeAPI.youtube_client.videos().list(part="snippet,contentDetails", id=vidid).execute
                     )
-                    
                     if not video_res.get("items"): break
-                    v_data = video_res["items"][0]
-                    title = v_data["snippet"]["title"]
-                    thumbnail = v_data["snippet"]["thumbnails"]["high"]["url"]
-                    duration_min, _ = self.parse_duration(v_data["contentDetails"]["duration"])
                     
-                    return title, duration_min, 0, thumbnail, vidid
+                    data = video_res["items"][0]
+                    title = data["snippet"]["title"]
+                    thumb = data["snippet"]["thumbnails"]["high"]["url"]
+                    duration_min, duration_sec = self.parse_iso_duration(data["contentDetails"]["duration"])
+                    
+                    return title, duration_min, duration_sec, thumb, vidid
+
                 except HttpError as e:
                     if e.resp.status in [403, 429]:
                         self._rotate_key()
@@ -108,39 +123,38 @@ class YouTubeAPI:
                     break
                 except Exception: break
 
-        # --- YT-DLP FALLBACK (Optimized for SABR/No-JS) ---
+        # --- 2. YT-DLP FALLBACK (If API Fails) ---
         try:
             loop = asyncio.get_running_loop()
-            search_query = f"ytsearch1:{link}" if not vidid else f"https://www.youtube.com/watch?v={vidid}"
+            query = f"ytsearch1:{link}" if not vidid else f"https://www.youtube.com/watch?v={vidid}"
             
-            # YDL Options to minimize JS runtime errors
             ydl_opts = {
                 "quiet": True,
                 "no_warnings": True,
                 "format": "bestaudio/best",
                 "skip_download": True,
                 "nocheckcertificate": True,
-                "geo_bypass": True,
-                "extract_flat": "in_playlist", # SABR errors se bachne ke liye
             }
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = await loop.run_in_executor(None, lambda: ydl.extract_info(search_query, download=False))
-                if 'entries' in info and len(info['entries']) > 0:
-                    data = info['entries'][0]
-                else:
-                    data = info
+                info = await loop.run_in_executor(None, lambda: ydl.extract_info(query, download=False))
+                if 'entries' in info:
+                    info = info['entries'][0]
+                
+                title = info.get('title', 'Unknown Title')
+                vid_id = info.get('id', '')
+                thumb = info.get('thumbnail', '')
+                
+                # Proper Duration Logic
+                duration_sec = info.get('duration', 0)
+                duration_min = self.format_seconds(duration_sec)
 
-                return (
-                    data.get('title', 'Unknown'),
-                    data.get('duration_string', '00:00'),
-                    data.get('duration', 0),
-                    data.get('thumbnail', ''),
-                    data.get('id', '')
-                )
-        except Exception:
+                return title, duration_min, duration_sec, thumb, vid_id
+        except Exception as e:
+            print(f"Extraction Error: {e}")
             return None
 
+    # Helper functions details() call karenge taaki format sahi rahe
     async def title(self, link: str, videoid: Union[bool, str] = None):
         res = await self.details(link, videoid)
         return res[0] if res else "Unknown"
@@ -156,13 +170,9 @@ class YouTubeAPI:
     async def track(self, link: str, videoid: Union[bool, str] = None):
         res = await self.details(link, videoid)
         if not res: return None, None
-        title, duration_min, duration_sec, thumbnail, vidid = res
-        track_details = {"title": title, "link": self.base + vidid, "vidid": vidid, "duration_min": duration_min, "thumb": thumbnail}
+        title, d_min, d_sec, thumb, vidid = res
+        track_details = {"title": title, "link": self.base + vidid, "vidid": vidid, "duration_min": d_min, "thumb": thumb}
         return track_details, vidid
-
-    async def exists(self, link: str, videoid: Union[bool, str] = None):
-        if videoid: link = self.base + link
-        return bool(re.search(self.regex, link))
 
     async def video(self, link: str, videoid: Union[bool, str] = None):
         if videoid: link = self.base + link
@@ -175,7 +185,7 @@ class YouTubeAPI:
         if videoid: link = self.base + link
         loop = asyncio.get_running_loop()
         def dl():
-            opts = {"format": "bestaudio/best" if not video else "best[height<=?720][ext=mp4]", "outtmpl": "downloads/%(id)s.%(ext)s", "quiet": True, "no_warnings": True}
+            opts = {"format": "bestaudio/best" if not video else "best[height<=?720][ext=mp4]", "outtmpl": "downloads/%(id)s.%(ext)s", "quiet": True}
             with yt_dlp.YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(link, download=True)
                 return os.path.join("downloads", f"{info['id']}.{info['ext']}")
